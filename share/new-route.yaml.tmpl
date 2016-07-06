@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Route
+metadata:
+  name: "${LETSENCRYPT_TEMP_ROUTE_NAME}"
+  annotations:
+    openshift.io/generated-by: "openshift-lets-encrypt"
+  labels:
+    butter.sh/lets-encrypt-hostname: "$LETSENCRYPT_HOSTNAME"
+    butter.sh/lets-encrypt-well-defined: yes
+spec:
+  host: "$LETSENCRYPT_HOSTNAME"
+  path: ".well-known/acme-challenge"
+  to:
+    kind: Service
+    name: "$LETSENCRYPT_SERVICE_NAME"
