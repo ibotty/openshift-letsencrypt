@@ -1,11 +1,17 @@
-export LETSENCRYPT_ALL_NAMESPACES=${LETSENCRYPT_ALL_NAMESPACES-}
+export LETSENCRYPT_SERVICE_NAME=${LETSENCRYPT_SERVICE_NAME-letsencrypt}
+export LETSENCRYPT_ALL_NAMESPACES=${LETSENCRYPT_ALL_NAMESPACES-no}
 export LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY="${LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY-edge}"
 export LETSENCRYPT_ROUTE_SELECTOR="${LETSENCRYPT_ROUTE_SELECTOR-butter.sh/letsencrypt-managed=yes}"
 
 export OC_GET_ROUTES="oc get routes"
-if [ -n $LETSENCRYPT_ALL_NAMESPACES ]; then
-    OC_GET_ROUTES="oc get routes --all-namespaces"
-fi
+case $LETSENCRYPT_ALL_NAMESPACES in
+    yes|y|true|t)
+        OC_GET_ROUTES="oc get routes --all-namespaces"
+        ;;
+    *)
+        ;;
+esac
+
 if [ -n "$LETSENCRYPT_ROUTE_SELECTOR" ]; then
     OC_GET_ROUTES="$OC_GET_ROUTES -l $LETSENCRYPT_ROUTE_SELECTOR"
 fi
@@ -57,4 +63,15 @@ hpkp_sha256() {
                 | openssl dgst -sha256 -binary | openssl enc -base64
             ;;
     esac
+}
+
+add_well_known_route() {
+    export DOMAINNAME="$1"
+    export TEMP_ROUTE_NAME="letsencrypt-$LETSENCRYPT_HOSTNAME"
+
+    envsubst '$DOMAINNAME:$LETSENCRYPT_SERVICE_NAME:$TEMP_ROUTE_NAME' \
+        < $LETSENCRYPT_SHAREDIR/new-well-known-route.yaml.tmpl \
+        | oc create -f - 1>&2
+
+    echo "$TEMP_ROUTE_NAME"
 }

@@ -22,7 +22,7 @@ patch_route "$NAMESPACE" "$ROUTE_NAME" '
   },
   "spec": { "tls": {
     "key": "'$(json_escape < $keyfile)'",
-    "certificate": "'$(json_escape < $crtfile)'",
+    "certificate": "'$(json_escape < $fullchainfile)'",
     "insecureEdgeTerminationPolicy": "'$INSECURE_EDGE_TERMINATION_POLICY'",
     "termination": "edge"
   } }
