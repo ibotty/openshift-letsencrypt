@@ -20,7 +20,7 @@ The following env variables can be used.
 
  * `LETSENCRYPT_ROUTE_SELECTOR` (*optional*, defaults to `butter.sh/letsencrypt-managed=yes`), to filter the routes to use;
  * `LETSENCRYPT_ALL_NAMESPACES` (*optional*, defaults to `yes`), to filter the routes to use;
- * `LETSENCRYPT_KUBE_PREFIX` (*optional*, defaults to `letsencrypt-`), the prefix for secrets and temporary routes;
+ * `LETSENCRYPT_RENEW_BEFORE_DAYS` (*optional*, defaults to `7`), renew this number of days before the certificate is about to expire;
  * `LETSENCRYPT_CONTACT_EMAIL` (*required for account generation*), the email that will be used by the ACME CA;
  * `LETSENCRYPT_CA` (*optional*, defaults to `https://acme-v01.api.letsencrypt.org/directory`);
  * `LETSENCRYPT_KEYTYPE` (*optional*, defaults to `rsa`), the key algorithm to use;
@@ -33,6 +33,11 @@ The following env variables can be used.
 ### Secrets
 
 Certificates are stored in secrets named `letsencrypt-<hostname>`, the ACME key is stored in `letsencrypt-creds`.
+
+They use the following labels.
+
+ * `butter.sh/letsencrypt-domainname`, the domain name
+ * `butter.sh/letsencrypt-crt-enddate-secs`, the certificates `notAfter` date in seconds since the epoch.
 
 
 ### Containers
@@ -52,7 +57,6 @@ They share the filesystem `/var/www/acme-challenges` to store the challenges.
    Uses `ibotty/s2i-nginx` on dockerhub.
 
 
-
 ## Installing Openshift-Letsencrypt
 
 ### Service Account
@@ -70,7 +74,6 @@ On key rollover, delete the previous key, use the oldest of the remaining keys t
 That way, the pin can stay valid for `(n-1)* lifetime of a key`.
 That is, if no key gets compromised!
 
-To generate the pin-sha256:
+### Locking
 
-     openssl rsa -in key.pem -outform der -pubout 2>/dev/null \
-       | openssl dgst -sha256 -binary | openssl enc -base64
+Should be done with `flock` around `/var/lib/letsencrypt-container/$DOMAINNAME`, whenever a certificate is to be touched.

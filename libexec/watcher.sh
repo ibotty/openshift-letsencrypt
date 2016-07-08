@@ -1,7 +1,7 @@
 #!/bin/bash -e
-. /usr/share/letsencrypt-container/common.sh
+. $LETSENCRYPT_SHAREDIR/common.sh
 
-OC_ROUTES_OPTIONS="-o go-template-file=/usr/share/letsencrypt-container/process-route.yaml"
+OC_ROUTES_OPTIONS="-o go-template-file=$LETSENCRYPT_SHAREDIR/process-route.yaml"
 
 watch_routes() {
     $OC_GET_ROUTES $OC_ROUTES_OPTIONS | sh
@@ -9,7 +9,7 @@ watch_routes() {
 
 while true
 do
-    if ! watch_routes
+    if ! watch_routes; then
         err "Failure to watch routes; exiting."
         exit 1
     fi

@@ -1,2 +1,2 @@
-/usr/share/letsencrypt-container/get_certificate.sh "${{.spec.host}}"
-/usr/share/letsencrypt-container/add_certificate_to_route.sh "${{.spec.host}}" "${{.metadata.namespace}}" "${{.metadata.name}}"
+$LETSENCRYPT_LIBEXECDIR/get_certificate.sh "${{.spec.host}}"
+$LETSENCRYPT_LIBEXECDIR/add_certificate_to_route.sh "${{.spec.host}}" "${{.metadata.namespace}}" "${{.metadata.name}}"
