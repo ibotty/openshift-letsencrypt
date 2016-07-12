@@ -1,0 +1,2 @@
+$LETSENCRYPT_LIBEXECDIR/get_certificate.sh "${{.spec.host}}"
+$LETSENCRYPT_LIBEXECDIR/add_certificate_to_route.sh "${{.spec.host}}" "${{.metadata.namespace}}" "${{.metadata.name}}"
