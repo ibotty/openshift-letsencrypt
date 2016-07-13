@@ -1,7 +1,7 @@
 #!/bin/sh -eu
 set -o pipefail
 
-if [ $# -le 1 ]; then
+if [ $# -eq 0 ]; then
     # default command is usage
     set usage
 fi
