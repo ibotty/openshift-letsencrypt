@@ -1,4 +1,5 @@
-#!/bin/sh -e
+#!/bin/sh -eu
+set -o pipefail
 
 if [ $# -le 1 ]; then
     # default command is usage
@@ -8,7 +9,7 @@ fi
 executable="/usr/libexec/letsencrypt-container/$1.sh"
 if [ -x "$executable" ]; then
     shift
-    exec "$executable" $@
+    exec "$executable" "$@"
 else
-    exec $@
+    exec "$@"
 fi

@@ -10,7 +10,7 @@ USER 0
 RUN curl -sSL https://github.com/lukas2511/letsencrypt.sh/archive/v${LETSENCRYPT_SH_VERSION}.tar.gz \
     | tar xzC /usr/share \
  && ln -s /usr/share/letsencrypt.sh-${LETSENCRYPT_SH_VERSION}/letsencrypt.sh /usr/bin \
- && yum install -y openssl nss_wrapper python
+ && yum install -y openssl curl nss_wrapper python
 
 USER 1001
 
