@@ -6,7 +6,7 @@ if [ $# -eq 0 ]; then
     set usage
 fi
 
-executable="/usr/libexec/letsencrypt-container/$1.sh"
+executable="$LETSENCRYPT_LIBEXECDIR/$1.sh"
 if [ -x "$executable" ]; then
     shift
     exec "$executable" "$@"
