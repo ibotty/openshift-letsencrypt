@@ -1,6 +1,8 @@
 #!/bin/sh -eu
 set -o pipefail
 
+echo "calling entrypoint with $@"
+
 if [ $# -eq 0 ]; then
     # default command is usage
     set usage
