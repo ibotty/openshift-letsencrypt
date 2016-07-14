@@ -9,7 +9,9 @@ fi
 executable="$LETSENCRYPT_LIBEXECDIR/$1.sh"
 if [ -x "$executable" ]; then
     shift
+    echo exec "$executable" "$@"
     exec "$executable" "$@"
 else
+    echo exec "$@"
     exec "$@"
 fi
