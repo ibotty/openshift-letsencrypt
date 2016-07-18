@@ -143,6 +143,7 @@ mount_secret() {
     local SECRET_NAME="$1"
     local MOUNT_PATH="$2"
 
+    mkdir -p "$MOUNT_PATH"
     pushd "$MOUNT_PATH"
     # shellcheck disable=SC2016
     local tmpl='{{range $key,$val := .data}}{{$key}}:{{$val}}
