@@ -35,7 +35,7 @@ json_escape() {
 }
 
 crt_enddate() {
-    userfriendly_date "$(crt_enddate "$1")"
+    userfriendly_date "$(crt_enddate_secs "$1")"
 }
 
 crt_enddate_secs() {

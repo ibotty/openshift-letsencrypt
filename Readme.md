@@ -61,7 +61,21 @@ They share the filesystem `/var/www/acme-challenges` to store the challenges.
 
 ### Service Account
 
-The "letsencrypt" service account needs to be able to manage its secrets and manage routes (modify existing, add routes and remove own).
+The "letsencrypt" service account needs to be able to manage its secrets and manage routes.
+
+```
+> oc create -f policybinding.yaml
+> oc create -f letsencrypt-role.yaml
+> oc policy add-role-to-user letsencrypt --role-namespace <mynamespace> -z letsencrypt
+```
+
+To manage routes in all namespaces, additionally do the following.
+
+```
+> oc create -f letsencrypt-clusterrole.yaml
+> oadm policy add-cluster-role-to-user letsencrypt -z letsencrypt
+```
+
 
 ## Notes
 
