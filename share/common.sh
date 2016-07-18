@@ -19,7 +19,7 @@ oc_get_routes() {
         routes_params+=("-l" "$LETSENCRYPT_ROUTE_SELECTOR")
     fi
 
-    oc get routes "${routes_params[@]}" "${@-}"
+    oc get routes "${routes_params[@]}" "${@}"
 }
 
 err() {
