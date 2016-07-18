@@ -47,15 +47,15 @@ crt_valid_long_enough() {
 }
 
 userfriendly_date() {
-    date -Iseconds -u -d "$1"
+    date -Iseconds -u -d "@$1"
 }
 
 date_in_secs() {
-    datespec=""
-    if [ -$# -eq 1 ]; then
-        datespec="-d $1"
+    datespec=()
+    if [ $# -eq 1 ]; then
+        datespec+=("-d" "$1")
     fi
-    date -u "$datespec" +%s
+    date -u "${datespec[@]}" +%s
 }
 
 min_valid_enddate_secs() {
