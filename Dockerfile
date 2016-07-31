@@ -1,4 +1,4 @@
-FROM openshift/origin:v1.2.0
+FROM openshift/origin:v1.2.1
 
 ENV LETSENCRYPT_SH_VERSION=0.2.0 \
     LETSENCRYPT_DATADIR=/var/lib/letsencrypt-container \
