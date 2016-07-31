@@ -22,6 +22,10 @@ oc_get_routes() {
     oc get routes "${routes_params[@]}" "${@}"
 }
 
+route_exists() {
+    oc get route -n "$1" "$2" > /dev/null 2>&1
+}
+
 err() {
     echo "${@-}" >&2
 }
