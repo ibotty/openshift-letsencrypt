@@ -1,41 +1,74 @@
 #!/bin/bash
+# shellcheck disable=SC2120,SC2119
 
 export LETSENCRYPT_SERVICE_NAME=${LETSENCRYPT_SERVICE_NAME-letsencrypt}
 export LETSENCRYPT_ACME_SECRET_NAME="${LETSENCRYPT_ACME_SECRET_NAME-letsencrypt-creds}"
-export LETSENCRYPT_ALL_NAMESPACES=${LETSENCRYPT_ALL_NAMESPACES-no}
-export LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY="${LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY-edge}"
+export LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY="${LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY-Redirect}"
 export LETSENCRYPT_ROUTE_SELECTOR="${LETSENCRYPT_ROUTE_SELECTOR-butter.sh/letsencrypt-managed=yes}"
+export LETSENCRYPT_KEYTYPE="${LETSENCRYPT_KEYTYPE-rsa}"
 
-oc_get_routes() {
-    local routes_params=()
-    case $LETSENCRYPT_ALL_NAMESPACES in
-        yes|y|true|t)
-            routes_params+=("--all-namespaces")
-            ;;
-        *)
-            ;;
-    esac
-    if [ -n "$LETSENCRYPT_ROUTE_SELECTOR" ]; then
-        routes_params+=("-l" "$LETSENCRYPT_ROUTE_SELECTOR")
-    fi
+PATH=${LETSENCRYPT_LIBEXECDIR}:$PATH
 
-    oc get routes "${routes_params[@]}" "${@}"
+OPENSHIFT_API_HOST=openshift.default
+SA_TOKEN="$(</run/secrets/kubernetes.io/serviceaccount/token)"
+OWN_NAMESPACE="$(</run/secrets/kubernetes.io/serviceaccount/namespace)"
+CA_CRT_FILE=/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+keyfile() {
+    echo "$LETSENCRYPT_DATADIR/$1/key"
 }
 
-route_exists() {
-    oc get route -n "$1" "$2" > /dev/null 2>&1
+certfile() {
+    echo "$LETSENCRYPT_DATADIR/$1/crt"
+}
+
+fullchainfile() {
+    echo "$LETSENCRYPT_DATADIR/$1/fullchain"
 }
 
 err() {
     echo "${@-}" >&2
 }
 
+api_call() {
+    local uri="${1##/}"; shift
+    curl --fail -sSH "Authorization: Bearer $SA_TOKEN" \
+         --cacert "$CA_CRT_FILE" \
+	 "https://$OPENSHIFT_API_HOST/$uri" \
+	 "$@"
+}
+
+watch_routes() {
+    local routes_uri
+    routes_uri="$(route_uri)"
+    if [ -n "$LETSENCRYPT_ROUTE_SELECTOR" ]; then
+        routes_uri="$routes_uri?labelSelector=$LETSENCRYPT_ROUTE_SELECTOR&watch"
+    fi
+    api_call "$routes_uri" -N
+}
+		
+route_uri() {
+    local name="${1-}"
+    echo "/oapi/v1/namespaces/$OWN_NAMESPACE/routes/$name"
+}
+
+route_exists() {
+    api_call "$(route_uri "$@")" > /dev/null 2>&1
+}
+
 patch_route() {
-    oc patch -n "$1" "route/$2" -p "$3" > /dev/null
+    api_call "$(route_uri "$1")" --request PATCH --data "$2" \
+        -H 'Content-Type: application/merge-patch+json' \
+        > /dev/null
 }
 
 json_escape() {
-    python -c 'import json,sys; print json.dumps(sys.stdin.read())'
+    jq -eRs .
+}
+
+random_chars() {
+    local count="${1-5}"
+    tr -dc 'a-z0-9' < /dev/urandom | head -c "$count"
 }
 
 crt_enddate() {
@@ -55,11 +88,11 @@ userfriendly_date() {
 }
 
 date_in_secs() {
-    datespec=()
+    local datespec=("-u" "+%s")
     if [ $# -eq 1 ]; then
         datespec+=("-d" "$1")
     fi
-    date -u "${datespec[@]}" +%s
+    date "${datespec[@]}"
 }
 
 min_valid_enddate_secs() {
@@ -74,10 +107,7 @@ valid_secrets_selector() {
         min_valid_secs="$(min_valid_enddate_secs)"
     fi
 
-    xargs <<EOF
-butter.sh/letsencrypt-crt-enddate-secs > $min_valid_secs,
-butter.sh/letsencrypt-domainname = $DOMAINNAME
-EOF
+    echo "butter.sh/letsencrypt-crt-enddate-secs>$min_valid_secs,butter.sh/letsencrypt-domainname=$DOMAINNAME"
 }
 
 hpkp_sha256() {
@@ -96,20 +126,22 @@ hpkp_sha256() {
 
 add_well_known_route() {
     export DOMAINNAME="$1"
-    export TEMP_ROUTE_NAME="letsencrypt-$LETSENCRYPT_HOSTNAME"
+    export TEMP_ROUTE_NAME="letsencrypt-$DOMAINNAME"
 
-    #shellcheck disable=SC2016
-    envsubst '$DOMAINNAME:$LETSENCRYPT_SERVICE_NAME:$TEMP_ROUTE_NAME' \
-        < "$LETSENCRYPT_SHAREDIR/new-well-known-route.yaml.tmpl" \
-        | oc create -f - 1>&2
+    envsubst < "$LETSENCRYPT_SHAREDIR/new-well-known-route.json.tmpl" \
+	| api_call "$(route_uri)" -X POST -d @- -H 'Content-Type: application/json' \
+	> /dev/null
 
-    echo "$TEMP_ROUTE_NAME"
+}
+delete_well_known_route() {
+    local DOMAINNAME="$1"
+    local TEMP_ROUTE_NAME="letsencrypt-$DOMAINNAME"
+    api_call "$(route_uri "$TEMP_ROUTE_NAME")" -X DELETE
 }
 
 add_certificate_to_route() {
     local DOMAINNAME="$1"
-    local NAMESPACE="$2"
-    local ROUTE_NAME="$3"
+    local SELFLINK="$2"
 
     if [ $# -eq 4 ] && [ -n "$4" ]; then
         local INSECURE_EDGE_TERMINATION_POLICY="$4"
@@ -117,44 +149,77 @@ add_certificate_to_route() {
         local INSECURE_EDGE_TERMINATION_POLICY=$LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY
     fi
 
-    local DOMAINDIR="$LETSENCRYPT_DATADIR/$DOMAINNAME"
+    local keyfile_; keyfile_="$(keyfile "$DOMAINNAME")"
+    local certfile_; certfile_="$(certfile "$DOMAINNAME")"
+    local fullchainfile_; fullchainfile_="$(fullchainfile "$DOMAINNAME")"
+    local key_sha256; key_sha256="$(hpkp_sha256 "$keyfile_")"
+    local enddate_secs; enddate_secs="$(crt_enddate_secs "$certfile_")"
 
-    local keyfile="$DOMAINDIR/privkey.pem"
-    #local crtfile="$DOMAINDIR/cert.pem"
-    local fullchainfile="$DOMAINDIR/fullchain.pem"
-    local key_sha256
-    key_sha256="$(hpkp_sha256 "$keyfile")"
-
-    patch_route "$NAMESPACE" "$ROUTE_NAME" '
+    local data; data="$(cat <<EOF
         { "metadata": {
-            "labels": {
-              "butter.sh/letsencrypt-key-sha256": "'"$key_sha256"'",
-            },
             "annotations": {
-              "butter.sh"
+              "butter.sh/letsencrypt-crt-enddate-secs": "$enddate_secs",
+              "butter.sh/letsencrypt-key-sha256": "$key_sha256"
             }
           },
           "spec": { "tls": {
-            "key": "'"$(json_escape < "$keyfile")"'",
-            "certificate": "'"$(json_escape < "$fullchainfile")"'",
-            "insecureEdgeTerminationPolicy": "'"$INSECURE_EDGE_TERMINATION_POLICY"'",
+            "key": $(json_escape < "$keyfile_"),
+            "certificate": $(json_escape < "$fullchainfile_"),
+            "insecureEdgeTerminationPolicy": "$INSECURE_EDGE_TERMINATION_POLICY",
             "termination": "edge"
           } }
-        }'
+        }
+EOF
+    )"
+    api_call "$SELFLINK" --request PATCH --data "$data" \
+        -H 'Content-Type: application/merge-patch+json'
+}
+
+get_secret() {
+    local name="$1"
+    api_call "/api/v1/namespaces/$OWN_NAMESPACE/secrets/$name"
 }
 
 mount_secret() {
-    local SECRET_NAME="$1"
-    local MOUNT_PATH="$2"
+    local MOUNT_PATH="$1"
 
     mkdir -p "$MOUNT_PATH"
     pushd "$MOUNT_PATH"
-    # shellcheck disable=SC2016
-    local tmpl='{{range $key,$val := .data}}{{$key}}:{{$val}}
-{{end}}'
-    oc get secret "$SECRET_NAME" --template="$tmpl" \
-        | while IFS=: read -r k v;
-            do echo "$v" | base64 -d > "$k"
-        done
+    local tmpl='.data | to_entries | map(.key+":"+.value) | join("\n")'
+
+    jq -er "$tmpl" | while IFS=: read -r k v;
+        do echo -n "$v" | base64 -d > "$k"
+    done
     popd
+}
+
+new_cert_secret() {
+    local domainname="$1" keyfile_="$2" crtfile_="$3" fullchainfile_="$4"
+    local secret_name; secret_name="letsencrypt-${domainname}-$(random_chars)"
+
+    local data; data="$(cat <<EOF
+{ "apiVersion": "v1",
+  "kind": "Secret",
+  "metadata": {
+    "name": "$secret_name",
+    "labels": {
+      "butter.sh/letsencrypt-crt-enddate-secs": "$(crt_enddate_secs "$crtfile_")",
+      "butter.sh/letsencrypt-domainname": "$domainname"
+    },
+    "annotations": {
+      "butter.sh/letsencrypt-key-sha256": "$(hpkp_sha256 "$keyfile_")"
+    }
+  },
+  "data": {
+    "key": $(base64 "$keyfile_" | json_escape),
+    "fullchain": $(base64 "$fullchainfile_" | json_escape),
+    "crt": $(base64 "$crtfile_" | json_escape)
+  }
+}
+EOF
+)"
+
+    api_call "/api/v1/namespaces/$OWN_NAMESPACE/secrets" -X POST -d "$data" \
+        -H "Content-Type: application/json" \
+        > /dev/null
 }

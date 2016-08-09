@@ -1,0 +1,50 @@
+#!/bin/bash
+set -euxo pipefail
+
+# shellcheck source=share/common.sh
+. $LETSENCRYPT_SHAREDIR/common.sh
+
+DOMAINNAME="$1"
+DOMAINDIR="$LETSENCRYPT_DATADIR/$DOMAINNAME"
+keyfile_="$(keyfile "$DOMAINNAME")"
+certfile_="$(certfile "$DOMAINNAME")"
+fullchainfile_="$(fullchainfile "$DOMAINNAME")"
+
+newest_secret_to_be_used() {
+    local tmpl='.items | sort_by(.metadata.labels."butter.sh/letsencrypt-crt-enddate-secs") | .[0]'
+    # TODO: check order!
+    api_call "/api/v1/namespaces/$OWN_NAMESPACE/secrets/?labelSelector=$(valid_secrets_selector "$1" "$(date_in_secs)")" \
+        | jq -er "$tmpl"
+}
+
+get_old_certificate() {
+    if ! [ -f "$certfile_" ] || ! [ -f "$keyfile_" ] || ! [ -f "$fullchainfile_" ]
+    then
+        newest_secret_to_be_used "$DOMAINNAME" | \
+            mount_secret "$DOMAINDIR" \
+	    || echo "no old certificate found"
+    fi
+}
+
+setup_api_key() {
+    get_secret "$LETSENCRYPT_ACME_SECRET_NAME" \
+         | mount_secret "$LETSENCRYPT_DATADIR"
+}
+
+get_new_certificate() {
+    setup_api_key
+    letsencrypt.sh \
+        --domain "$DOMAINNAME" \
+        --challenge http-01 \
+        --algo "$LETSENCRYPT_KEYTYPE" \
+        --out "$LETSENCRYPT_DATADIR" \
+        --privkey "$LETSENCRYPT_DATADIR/account-key" \
+        --hook "$LETSENCRYPT_LIBEXECDIR/letsencrypt_sh-hook" \
+        --config "$LETSENCRYPT_SHAREDIR/config" \
+        --cron
+}
+
+get_old_certificate
+if ! crt_valid_long_enough "$certfile_"; then
+    get_new_certificate "$DOMAINNAME"
+fi

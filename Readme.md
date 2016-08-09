@@ -1,6 +1,6 @@
 # Automatic Certificates for Openshift Routes
 
-It will manage all `route`s with (by default) `butter.sh/letsencrypt-managed=yes` labels.
+It will manage all `route`s with (by default) `butter.sh/letsencrypt-managed=yes` labels in the project/namespace, it's deployed in.
 Certificates will be stored in secrets that belong to the letsencrypt service account.
 
 
@@ -12,6 +12,7 @@ For now, there are the following limitations.
  * It will not create the letsencrypt account.
    It needs to be created before deploying.
    See Section **Installation** below.
+ * It can't work cross-namespace.
 
 
 ## Customizing
@@ -19,7 +20,6 @@ For now, there are the following limitations.
 The following env variables can be used.
 
  * `LETSENCRYPT_ROUTE_SELECTOR` (*optional*, defaults to `butter.sh/letsencrypt-managed=yes`), to filter the routes to use;
- * `LETSENCRYPT_ALL_NAMESPACES` (*optional*, defaults to `yes`), to filter the routes to use;
  * `LETSENCRYPT_RENEW_BEFORE_DAYS` (*optional*, defaults to `7`), renew this number of days before the certificate is about to expire;
  * `LETSENCRYPT_CONTACT_EMAIL` (*required for account generation*), the email that will be used by the ACME CA;
  * `LETSENCRYPT_CA` (*optional*, defaults to `https://acme-v01.api.letsencrypt.org/directory`);
@@ -43,7 +43,7 @@ They use the following labels.
 ### Containers
 
 The pod consists of three containers, each doing exactly one thing.
-They share the filesystem `/var/www/acme-challenges` to store the challenges.
+They share the filesystem `/var/www/acme-challenge` to store the challenges.
 
  * **Watcher Container**
    watches routes and either generates a new certificate or set the already generated certificate.

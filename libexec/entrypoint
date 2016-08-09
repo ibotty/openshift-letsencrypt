@@ -1,0 +1,12 @@
+#!/bin/sh
+set -euxo pipefail
+
+# shellcheck source=share/common.sh
+. $LETSENCRYPT_SHAREDIR/common.sh
+
+if [ $# -eq 0 ]; then
+    # default command is usage
+    set usage
+fi
+
+exec "$@"

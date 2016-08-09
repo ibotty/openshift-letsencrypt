@@ -1,0 +1,2 @@
+BASEDIR="$LETSENCRYPT_DATADIR"
+WELLKNOWN=/var/www/acme-challenge

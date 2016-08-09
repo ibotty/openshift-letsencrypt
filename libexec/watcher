@@ -1,0 +1,23 @@
+#!/bin/bash
+set -euxo pipefail
+
+# shellcheck source=share/common.sh
+. "$LETSENCRYPT_SHAREDIR/common.sh"
+
+process_routes() {
+    local domainname selflink
+    local tmpl='.object.spec.host + ":" + .object.metadata.selfLink'
+    watch_routes | jq -er --unbuffered "$tmpl" \
+        | while IFS=: read -r domainname selflink; do
+            get_certificate "$domainname"
+            add_certificate_to_route "$domainname" "$selflink"
+        done
+}
+
+while true
+do
+    if ! process_routes; then
+        err "Failure to watch routes; exiting."
+        exit 1
+    fi
+done
