@@ -32,7 +32,7 @@ manage_route() {
     { "metadata": { 
         "labels": {
           "butter.sh/letsencrypt-managed": $managed
-        },
+        }
       } 
     }')"
     log "patching route '$routeselflink' with patch '$patch'"
