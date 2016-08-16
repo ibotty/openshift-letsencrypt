@@ -33,6 +33,7 @@ setup_api_key() {
 
 get_new_certificate() {
     setup_api_key
+    log "calling letsencrypt.sh with domain name '$DOMAINNAME'"
     letsencrypt.sh \
         --domain "$DOMAINNAME" \
         --challenge http-01 \
@@ -45,6 +46,9 @@ get_new_certificate() {
 }
 
 get_old_certificate
-if ! crt_valid_long_enough "$certfile_"; then
+if crt_valid_long_enough "$certfile_"; then
+    log "Certificate for $DOMAINNAME still valid long enough."
+else
+    log "Getting new certificate for $DOMAINNAME"
     get_new_certificate "$DOMAINNAME"
 fi

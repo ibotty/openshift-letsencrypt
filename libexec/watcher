@@ -9,6 +9,7 @@ process_routes() {
     local tmpl='.object.spec.host + ":" + .object.metadata.selfLink'
     watch_routes | jq -er --unbuffered "$tmpl" \
         | while IFS=: read -r domainname selflink; do
+            log "processing route $selflink with domain $domainname"
             get_certificate "$domainname"
             add_certificate_to_route "$domainname" "$selflink"
         done
