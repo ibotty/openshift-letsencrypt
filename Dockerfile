@@ -19,5 +19,5 @@ USER 1001
 ADD libexec/ $LETSENCRYPT_LIBEXECDIR
 ADD share/ $LETSENCRYPT_SHAREDIR
 
-ENTRYPOINT ["$LETSENCRYPT_LIBEXECDIR/entrypoint"]
+ENTRYPOINT ["/usr/libexec/letsencrypt-container/entrypoint"]
 CMD ["usage"]
