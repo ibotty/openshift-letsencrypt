@@ -28,7 +28,7 @@ manage_route() {
     local routeselflink="$1"
     local managed=no
     is_true "$ACME_MANAGE" && managed=yes
-    local patch; patch="$( jq -n --args managed "$managed" '
+    local patch; patch="$( jq -n --arg managed "$managed" '
     { "metadata": { 
         "labels": {
           "butter.sh/letsencrypt-managed": $managed
