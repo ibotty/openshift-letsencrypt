@@ -200,13 +200,11 @@ mount_secret() {
     local MOUNT_PATH="$1"
 
     mkdir -p "$MOUNT_PATH"
-    pushd "$MOUNT_PATH"
     local tmpl='.data | to_entries | map(.key+":"+.value) | join("\n")'
 
     jq -er "$tmpl" | while IFS=: read -r k v;
-        do echo -n "$v" | base64 -d > "$k"
+        do echo -n "$v" | base64 -d > "$MOUNT_PATH/$k"
     done
-    popd
 }
 
 new_cert_secret() {

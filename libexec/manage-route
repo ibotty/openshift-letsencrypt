@@ -25,7 +25,9 @@ usage() {
 # shellcheck disable=SC2016
 manage_route() {
     local routeselflink="$1"
-    local patch; patch="$( jq -n --args managed "$ACME_MANAGE" '
+    local managed=no
+    is_true "$ACME_MANAGE" && managed=yes
+    local patch; patch="$( jq -n --args managed "$managed" '
     { "metadata": { 
         "labels": {
           "butter.sh/letsencrypt-managed": $managed
