@@ -1,5 +1,5 @@
 #!/bin/bash 
-set -euxo pipefail
+set -euo pipefail
 
 # shellcheck source=share/common.sh
 . $LETSENCRYPT_SHAREDIR/common.sh
