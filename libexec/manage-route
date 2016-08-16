@@ -1,0 +1,121 @@
+#!/bin/bash
+set -euxo pipefail
+
+# shellcheck source=share/common.sh
+. "$LETSENCRYPT_SHAREDIR"/common.sh
+
+SCRIPTNAME="$0"
+DRY_RUN=n
+NAMESPACE="$OWN_NAMESPACE"
+ACME_MANAGE=y
+declare -a ROUTES=()
+
+usage() {
+    echo "Usage: $SCRIPTNAME [OPTION]... [ROUTE_NAME]..."
+    echo "Set whether routes TLS settings are to be managed by Let's Encrypt."
+    echo
+    echo "Optional Arguments:"
+    echo "  -l --letsencrypt=[yes|no]   let Let's Encrypt manage certificate (default)"
+    echo "  -n --namespace=NAMESPACE    openshift namespace/project the route is in"
+    echo "  -v --verbose                be verbose"
+    echo "     --dry-run                only print what would be done (implies verbose)"
+    echo "  -h --help                   show this help"
+}
+
+# shellcheck disable=SC2016
+manage_route() {
+    local routeselflink="$1"
+    local patch; patch="$( jq -n --args managed "$ACME_MANAGE" '
+    { "metadata": { 
+        "labels": {
+          "butter.sh/letsencrypt-managed": $managed
+        },
+      } 
+    }')"
+    log "patching route '$routeselflink' with patch '$patch'"
+
+    if ! is_true "$DRY_RUN"; then
+        patch_route "$routeselflink" "$patch"
+    fi
+}
+
+parseopts() {
+    local optspec="l:n:vh-:" 
+    local val
+    while getopts "$optspec" flag; do
+        case "$flag" in
+            -)
+                case "$OPTARG" in
+                    verbose)
+                        LETSENCRYPT_VERBOSE=y
+                        ;;
+                    help)
+                        usage
+                        exit 0
+                        ;;
+                    dry-run)
+                        LETSENCRYPT_VERBOSE=y
+                        DRY_RUN=y
+                        ;;
+                    namespace)
+                        val="${!OPTIND}"
+                        OPTIND="$((OPTIND + 1))"
+                        NAMESPACE="$val"
+                        ;;
+                    namespace=)
+                        val=${OPTARG#*=}
+                        NAMESPACE="$val"
+                        ;;
+                    letsencrypt)
+                        val="${!OPTIND}"
+                        OPTIND="$((OPTIND + 1))"
+                        ACME_MANAGE="$val"
+                        ;;
+                    letsencrypt=)
+                        val=${OPTARG#*=}
+                        ACME_MANAGE="$val"
+                        ;;
+                    *)
+                        if [ "$OPTERR" = 1 ] && [ "${optspec:0:1}" != : ] ; then
+                            err "Unknown option '--${OPTARG}'"
+                            usage >&2
+                            exit 1
+                        fi
+                        ;;
+                esac;;
+            h)
+                usage
+                exit 0
+                ;;
+            v)
+                LETSENCRYPT_VERBOSE=y
+                ;;
+            l)
+                val="${OPTARG-y}"
+                ACME_MANAGE="$val"
+                ;;
+            *)
+                if [ "$OPTERR" != 1 ] || [ "${optspec:0:1}" = : ] ; then
+                    err "Non-option argument: '-${OPTARG}'"
+                    usage >&2
+                    exit 1
+                fi
+                ;;
+        esac
+    done
+    shift $(( OPTIND - 1 ));
+    if [ "$#" -eq 0 ]; then
+        err "No route given. Please provide one or more routes."
+        exit 1
+    fi
+    ROUTES=("$@")
+}
+
+main() {
+    parseopts "$@"
+    for route in "${ROUTES[@]}"; do
+        manage_route "$(route_uri "$route" "$NAMESPACE")" 
+    done
+}
+
+main "$@"

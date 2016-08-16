@@ -6,6 +6,8 @@ export LETSENCRYPT_ACME_SECRET_NAME="${LETSENCRYPT_ACME_SECRET_NAME-letsencrypt-
 export LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY="${LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY-Redirect}"
 export LETSENCRYPT_ROUTE_SELECTOR="${LETSENCRYPT_ROUTE_SELECTOR-butter.sh/letsencrypt-managed=yes}"
 export LETSENCRYPT_KEYTYPE="${LETSENCRYPT_KEYTYPE-rsa}"
+export LETSENCRYPT_RENEW_BEFORE_DAYS=${LETSENCRYPT_RENEW_BEFORE_DAYS-30}
+export LETSENCRYPT_VERBOSE="${LETSENCRYPT_VERBOSE=n}"
 
 PATH=${LETSENCRYPT_LIBEXECDIR}:$PATH
 
@@ -30,6 +32,20 @@ err() {
     echo "${@-}" >&2
 }
 
+log() {
+    is_true "$LETSENCRYPT_VERBOSE" && echo "$@"
+}
+
+is_true() {
+    case "$1" in
+        y|yes|1|t|true)
+            true
+            ;;
+        *)
+            false
+            ;;
+    esac
+}
 api_call() {
     local uri="${1##/}"; shift
     curl --fail -sSH "Authorization: Bearer $SA_TOKEN" \
@@ -49,7 +65,8 @@ watch_routes() {
 		
 route_uri() {
     local name="${1-}"
-    echo "/oapi/v1/namespaces/$OWN_NAMESPACE/routes/$name"
+    local namespace="${2-$OWN_NAMESPACE}"
+    echo "/oapi/v1/namespaces/$namespace/routes/$name"
 }
 
 route_exists() {
@@ -57,7 +74,7 @@ route_exists() {
 }
 
 patch_route() {
-    api_call "$(route_uri "$1")" --request PATCH --data "$2" \
+    api_call "$1" --request PATCH --data "$2" \
         -H 'Content-Type: application/merge-patch+json' \
         > /dev/null
 }
@@ -171,8 +188,7 @@ add_certificate_to_route() {
         }
 EOF
     )"
-    api_call "$SELFLINK" --request PATCH --data "$data" \
-        -H 'Content-Type: application/merge-patch+json'
+    patch_route "$SELFLINK" "$data"
 }
 
 get_secret() {
