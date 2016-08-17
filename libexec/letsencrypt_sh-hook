@@ -7,7 +7,12 @@ set -euo pipefail
 deploy_challenge() {
     local DOMAIN="${1}" TOKEN_FILENAME="${2}" TOKEN_VALUE="${3}"
 
-    delete_well_known_route "$DOMAIN" || true
+    if route_exists "$(well_known_route_name "$DOMAIN")"; then
+        log "Deleting well-known route."
+        delete_well_known_route "$DOMAIN"
+    fi
+
+    log "Adding well-known route."
     add_well_known_route "$DOMAIN"
 
     sleep 5s
@@ -16,6 +21,7 @@ deploy_challenge() {
 clean_challenge() {
     local DOMAIN="${1}" TOKEN_FILENAME="${2}" TOKEN_VALUE="${3}"
 
+    log "Deleting well-known route."
     delete_well_known_route "$DOMAIN"
 }
 
@@ -23,6 +29,7 @@ deploy_cert() {
     local DOMAIN="${1}" KEYFILE="${2}" CERTFILE="${3}"
     local FULLCHAINFILE="${4}" CHAINFILE="${5}" TIMESTAMP="${6}"
 
+    log "Create new certificate secret."
     new_cert_secret "$DOMAIN" "$KEYFILE" "$CERTFILE" "$FULLCHAINFILE"
     cp "$KEYFILE" "$(keyfile "$DOMAIN")"
     cp "$CERTFILE" "$(certfile "$DOMAIN")"

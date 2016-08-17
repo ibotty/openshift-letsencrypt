@@ -50,8 +50,13 @@ api_call() {
     local uri="${1##/}"; shift
     curl --fail -sSH "Authorization: Bearer $SA_TOKEN" \
          --cacert "$CA_CRT_FILE" \
-	 "https://$OPENSHIFT_API_HOST/$uri" \
-	 "$@"
+	     "https://$OPENSHIFT_API_HOST/$uri" \
+	     "$@" 2> /dev/null
+    if ! [ "$?" -eq 0 ]; then
+        curl -sSH "Authorization: Bearer $SA_TOKEN" \
+            --cacert "$CA_CRT_FILE" \
+            "https://$OPENSHIFT_API_HOST/$uri" "$@"
+    fi
 }
 
 watch_routes() {
@@ -141,9 +146,14 @@ hpkp_sha256() {
     esac
 }
 
+well_known_route_name() {
+    local domainname="$1"
+    echo "letsencrypt-$domainname"
+}
+
 add_well_known_route() {
     export DOMAINNAME="$1"
-    export TEMP_ROUTE_NAME="letsencrypt-$DOMAINNAME"
+    export TEMP_ROUTE_NAME="$(well_known_route_name "$DOMAINNAME")"
 
     envsubst < "$LETSENCRYPT_SHAREDIR/new-well-known-route.json.tmpl" \
 	| api_call "$(route_uri)" -X POST -d @- -H 'Content-Type: application/json' \
@@ -152,7 +162,7 @@ add_well_known_route() {
 }
 delete_well_known_route() {
     local DOMAINNAME="$1"
-    local TEMP_ROUTE_NAME="letsencrypt-$DOMAINNAME"
+    local TEMP_ROUTE_NAME="$(well_known_route_name "$DOMAINNAME")"
     api_call "$(route_uri "$TEMP_ROUTE_NAME")" -X DELETE
 }
 
