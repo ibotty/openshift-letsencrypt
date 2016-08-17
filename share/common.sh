@@ -56,6 +56,7 @@ api_call() {
         curl -sSH "Authorization: Bearer $SA_TOKEN" \
             --cacert "$CA_CRT_FILE" \
             "https://$OPENSHIFT_API_HOST/$uri" "$@"
+        false
     fi
 }
 

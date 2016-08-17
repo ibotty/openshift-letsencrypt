@@ -5,14 +5,14 @@ set -euo pipefail
 . "$LETSENCRYPT_SHAREDIR/common.sh"
 
 process_routes() {
-    local domainname selflink
+    local domainname selfLink
     local tmpl='.object.spec.host + ":" + .object.metadata.selfLink'
     log "watching routes with selector $LETSENCRYPT_ROUTE_SELECTOR"
     watch_routes | jq -er --unbuffered "$tmpl" \
-        | while IFS=: read -r domainname selflink; do
-            log "processing route $selflink with domain $domainname"
+        | while IFS=: read -r domainname selfLink; do
+            log "Processing route $selfLink with domain $domainname."
             get_certificate "$domainname"
-            add_certificate_to_route "$domainname" "$selflink"
+            add_certificate_to_route "$domainname" "$selfLink"
         done
 }
 

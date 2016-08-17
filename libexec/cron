@@ -7,7 +7,14 @@ set -euo pipefail
 WHEN="tomorrow 02:05"
 
 do_cron() {
-    echo "TODO: doing things"
+    local domainname selfLink
+    local tmpl='.items[] | .spec.host + ":" + .metadata.selfLink'
+    get_routes | jq -er "$tmpl" \
+        | while IFS=: read -r domainname selfLink; do
+            log "Processing route $selfLink with domain $domainname."
+            get_certificate "$domainname"
+            add_certificate_to_route "$domainname" "$selfLink"
+        done
 }
 
 while true; do
