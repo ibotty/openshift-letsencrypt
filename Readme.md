@@ -12,7 +12,7 @@ For now, there are the following limitations.
  * It will not create the letsencrypt account.
    It needs to be created before deploying.
    See Section **Installation** below.
- * It doesn't work cross-namespace.
+ * It doesn't work cross-namespace. See issue #4.
 
 
 ## Customizing
