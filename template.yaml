@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: letsencrypt
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: letsencrypt
+    name: letsencrypt
+  spec:
+    replicas: 1
+    selector:
+      app: letsencrypt
+      deploymentconfig: letsencrypt
+    strategy:
+      recreateParams:
+        timeoutSeconds: 600
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: letsencrypt
+          deploymentconfig: letsencrypt
+      spec:
+        containers:
+        - args:
+          - watcher
+          env:
+          - name: LETSENCRYPT_CONTACT_EMAIL
+            value: ${LETSENCRYPT_CONTACT_EMAIL}
+          image: ibotty/openshift-letsencrypt:latest
+          imagePullPolicy: Always
+          name: watcher
+          volumeMounts:
+          - mountPath: /var/lib/letsencrypt-container
+            name: datadir
+          - mountPath: /var/www/acme-challenge
+            name: acme-challenge
+        - args:
+          - cron
+          env:
+          - name: LETSENCRYPT_CONTACT_EMAIL
+            value: ${LETSENCRYPT_CONTACT_EMAIL}
+          image: ibotty/openshift-letsencrypt:latest
+          name: cron
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /var/lib/letsencrypt-container
+            name: datadir
+          - mountPath: /var/www/acme-challenge
+            name: acme-challenge
+        - args:
+          - /usr/libexec/s2i/run
+          image: ibotty/s2i-nginx:latest
+          name: nginx
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /opt/app-root/src/html/.well-known/acme-challenge
+            name: acme-challenge
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        serviceAccount: letsencrypt
+        serviceAccountName: letsencrypt
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+          name: acme-challenge
+        - emptyDir: {}
+          name: datadir
+    triggers:
+    - type: ConfigChange
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: letsencrypt
+    name: letsencrypt
+  spec:
+    ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: letsencrypt
+      deploymentconfig: letsencrypt
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: letsencrypt
+parameters:
+- description: The email to be register by the ACME registry.
+  name: LETSENCRYPT_CONTACT_EMAIL
+  required: true
