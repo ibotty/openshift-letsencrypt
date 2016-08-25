@@ -71,6 +71,16 @@ watch_routes() {
     fi
     api_call "$routes_uri" -N
 }
+
+get_routes() {
+    local routes_uri
+    routes_uri="$(route_uri)"
+    if [ -n "$LETSENCRYPT_ROUTE_SELECTOR" ]; then
+        routes_uri="$routes_uri?labelSelector=$LETSENCRYPT_ROUTE_SELECTOR"
+    fi
+    api_call "$routes_uri"
+}
+		
 		
 route_uri() {
     local name="${1-}"
