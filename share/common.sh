@@ -92,6 +92,11 @@ route_exists() {
     api_call "$(route_uri "$@")" > /dev/null 2>&1
 }
 
+route_is_valid() {
+    local isAdmitted='.status.ingress[0].conditions[0].type == "Admitted"'
+    api_call "$(route_uri "$@")"  | jq -e "$isAdmitted" > /dev/null
+}
+
 patch_route() {
     api_call "$1" --request PATCH --data "$2" \
         -H 'Content-Type: application/merge-patch+json' \
@@ -167,7 +172,7 @@ well_known_route_name() {
 
 add_well_known_route() {
     export DOMAINNAME="$1"
-    export TEMP_ROUTE_NAME="$(well_known_route_name "$DOMAINNAME")"
+    export TEMP_ROUTE_NAME; TEMP_ROUTE_NAME="$(well_known_route_name "$DOMAINNAME")"
 
     envsubst < "$LETSENCRYPT_SHAREDIR/new-well-known-route.json.tmpl" \
 	| api_call "$(route_uri)" -X POST -d @- -H 'Content-Type: application/json' \
@@ -176,7 +181,7 @@ add_well_known_route() {
 }
 delete_well_known_route() {
     local DOMAINNAME="$1"
-    local TEMP_ROUTE_NAME="$(well_known_route_name "$DOMAINNAME")"
+    local TEMP_ROUTE_NAME; TEMP_ROUTE_NAME="$(well_known_route_name "$DOMAINNAME")"
     api_call "$(route_uri "$TEMP_ROUTE_NAME")" -X DELETE
 }
 

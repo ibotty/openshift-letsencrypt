@@ -2,12 +2,13 @@
 set -euo pipefail
 
 # shellcheck source=share/common.sh
-. $LETSENCRYPT_SHAREDIR/common.sh
+. "$LETSENCRYPT_SHAREDIR/common.sh"
 
 deploy_challenge() {
     local DOMAIN="${1}" TOKEN_FILENAME="${2}" TOKEN_VALUE="${3}"
+    local route_name; route_name="$(well_known_route_name "$DOMAIN")"
 
-    if route_exists "$(well_known_route_name "$DOMAIN")"; then
+    if route_exists "$route_name"; then
         log "Deleting well-known route."
         delete_well_known_route "$DOMAIN"
     fi
@@ -15,7 +16,16 @@ deploy_challenge() {
     log "Adding well-known route."
     add_well_known_route "$DOMAIN"
 
-    sleep 5s
+    # sleep for max 50s waiting for admitted route
+    for ((i=50; i > 0; i--)); do
+        sleep 2s
+        if route_is_valid "$route_name"; then
+            exit 0
+        fi
+    done
+
+    log "Route $route_name not yet admitted."
+    exit 1
 }
 
 clean_challenge() {
