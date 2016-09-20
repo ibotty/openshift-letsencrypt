@@ -8,9 +8,9 @@ ENV LETSENCRYPT_SH_COMMIT=d81eb58536e3ae1170de3eda305688ae28d0575b \
 
 USER 0
 
-RUN curl -sSL https://github.com/lukas2511/letsencrypt.sh/raw/$LETSENCRYPT_SH_COMMIT/letsencrypt.sh \
-         -o /usr/bin/letsencrypt.sh \
- && chmod +x /usr/bin/letsencrypt.sh \
+RUN curl -sSL https://github.com/lukas2511/dehydrated/raw/$LETSENCRYPT_SH_COMMIT/dehydrated \
+         -o /usr/bin/dehydrated \
+ && chmod +x /usr/bin/dehydrated \
  && yum install -y openssl curl nss_wrapper jq \
  && yum clean all
 

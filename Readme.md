@@ -84,7 +84,7 @@ For now, the admin role can be used, but that should be tightened considerably.
 
 ### Let's encrypt credentials
 
-Given an account-key (from running [letsencrypt.sh](https://github.com/lukas2511/letsencrypt.sh) or any other tool), create a secret as follows.
+Given an account-key (from running [dehydrated](https://github.com/lukas2511/dehydrated) or any other tool), create a secret as follows.
 
 ```
 > oc secrets new letsencrypt-creds account-key=/path/to/account-key.pem

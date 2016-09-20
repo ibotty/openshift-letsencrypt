@@ -33,14 +33,14 @@ setup_api_key() {
 
 get_new_certificate() {
     setup_api_key
-    log "calling letsencrypt.sh with domain name '$DOMAINNAME'"
-    letsencrypt.sh \
+    log "calling dehydrated with domain name '$DOMAINNAME'"
+    dehydrated \
         --domain "$DOMAINNAME" \
         --challenge http-01 \
         --algo "$LETSENCRYPT_KEYTYPE" \
         --out "$LETSENCRYPT_DATADIR" \
         --privkey "$LETSENCRYPT_DATADIR/account-key" \
-        --hook "$LETSENCRYPT_LIBEXECDIR/letsencrypt_sh-hook" \
+        --hook "$LETSENCRYPT_LIBEXECDIR/dehydrated-hook" \
         --config "$LETSENCRYPT_SHAREDIR/config" \
         --cron
 }
