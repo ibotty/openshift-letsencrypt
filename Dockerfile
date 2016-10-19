@@ -1,6 +1,6 @@
 FROM openshift/base-centos7
 
-ENV LETSENCRYPT_SH_COMMIT=d81eb58536e3ae1170de3eda305688ae28d0575b \
+ENV LETSENCRYPT_SH_REF=v0.3.1 \
     LETSENCRYPT_DATADIR=/var/lib/letsencrypt-container \
     LETSENCRYPT_LIBEXECDIR=/usr/libexec/letsencrypt-container \
     LETSENCRYPT_SHAREDIR=/usr/share/letsencrypt-container
@@ -8,7 +8,7 @@ ENV LETSENCRYPT_SH_COMMIT=d81eb58536e3ae1170de3eda305688ae28d0575b \
 
 USER 0
 
-RUN curl -sSL https://github.com/lukas2511/dehydrated/raw/$LETSENCRYPT_SH_COMMIT/dehydrated \
+RUN curl -sSL https://github.com/lukas2511/dehydrated/raw/$LETSENCRYPT_SH_REF/dehydrated \
          -o /usr/bin/dehydrated \
  && chmod +x /usr/bin/dehydrated \
  && yum install -y openssl curl nss_wrapper jq \
