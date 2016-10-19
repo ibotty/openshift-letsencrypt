@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+set -x
 
 # shellcheck source=share/common.sh
 . "$LETSENCRYPT_SHAREDIR/common.sh"
@@ -40,9 +41,7 @@ deploy_cert() {
     local FULLCHAINFILE="${4}" CHAINFILE="${5}" TIMESTAMP="${6}"
 
     log "Create new certificate secret."
-    set -x
     new_cert_secret "$DOMAIN" "$KEYFILE" "$CERTFILE" "$FULLCHAINFILE"
-    set +x
     cp "$KEYFILE" "$(keyfile "$DOMAIN")"
     cp "$CERTFILE" "$(certfile "$DOMAIN")"
     cp "$FULLCHAINFILE" "$(fullchainfile "$DOMAIN")"
