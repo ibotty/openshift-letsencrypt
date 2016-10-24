@@ -11,6 +11,7 @@ USER 0
 RUN curl -sSL https://github.com/lukas2511/dehydrated/raw/$LETSENCRYPT_SH_REF/dehydrated \
          -o /usr/bin/dehydrated \
  && chmod +x /usr/bin/dehydrated \
+ && yum install -y epel-release \
  && yum install -y openssl curl nss_wrapper jq \
  && yum clean all
 
