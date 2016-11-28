@@ -51,4 +51,11 @@ if crt_valid_long_enough "$certfile_"; then
 else
     log "Getting new certificate for $DOMAINNAME"
     get_new_certificate "$DOMAINNAME"
+
+    log "Create new certificate secret."
+    new_cert_secret \
+        "$DOMAINNAME" \
+        "$(keyfile "$DOMAINNAME")" \
+        "$(certfile "$DOMAINNAME")" \
+        "$(fullchainfile "$DOMAINNAME")"
 fi
