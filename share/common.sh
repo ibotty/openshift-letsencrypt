@@ -103,6 +103,17 @@ patch_route() {
         > /dev/null
 }
 
+get_certs_from_route() {
+    local domain="$1" selflink="$2"
+    local keytmpl='.spec.tls.key'
+    local certtmpl='.spec.tls.certificate'
+    route_json="$(api_call "$selflink")"
+    echo "$route_json" | jq -er "$certtmpl" > "$(fullchainfile "$domain")"
+    echo "$route_json" | jq -er "$keytmpl" > "$(keyfile "$domain")"
+    # don't bother with a split out cert
+    cp "$(fullchainfile "$domain")" "$(certfile "$domain")"
+}
+
 json_escape() {
     jq -eRs .
 }

@@ -5,23 +5,16 @@ set -euo pipefail
 . $LETSENCRYPT_SHAREDIR/common.sh
 
 DOMAINNAME="$1"
+SELFLINK="$2"
 DOMAINDIR="$LETSENCRYPT_DATADIR/$DOMAINNAME"
 keyfile_="$(keyfile "$DOMAINNAME")"
 certfile_="$(certfile "$DOMAINNAME")"
 fullchainfile_="$(fullchainfile "$DOMAINNAME")"
 
-newest_secret_to_be_used() {
-    local tmpl='.items | sort_by(.metadata.labels."butter.sh/letsencrypt-crt-enddate-secs") | .[0]'
-    # TODO: check order!
-    api_call "/api/v1/namespaces/$OWN_NAMESPACE/secrets/?labelSelector=$(valid_secrets_selector "$1" "$(date_in_secs)")" \
-        | jq -er "$tmpl"
-}
-
 get_old_certificate() {
     if ! [ -f "$certfile_" ] || ! [ -f "$keyfile_" ] || ! [ -f "$fullchainfile_" ]
     then
-        newest_secret_to_be_used "$DOMAINNAME" | \
-            mount_secret "$DOMAINDIR" \
+        get_certs_from_route "$DOMAINNAME" "$SELFLINK"\
 	    || echo "no old certificate found"
     fi
 }
@@ -51,11 +44,5 @@ if crt_valid_long_enough "$certfile_"; then
 else
     log "Getting new certificate for $DOMAINNAME"
     get_new_certificate "$DOMAINNAME"
-
-    log "Create new certificate secret."
-    new_cert_secret \
-        "$DOMAINNAME" \
-        "$(keyfile "$DOMAINNAME")" \
-        "$(certfile "$DOMAINNAME")" \
-        "$(fullchainfile "$DOMAINNAME")"
+    add_certificate_to_route "$DOMAINNAME" "$SELFLINK"
 fi

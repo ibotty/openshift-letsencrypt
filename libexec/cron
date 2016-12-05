@@ -12,8 +12,7 @@ do_cron() {
     get_routes | jq -er "$tmpl" \
         | while IFS=: read -r domainname selfLink; do
             log "Processing route $selfLink with domain $domainname."
-            get_certificate "$domainname"
-            add_certificate_to_route "$domainname" "$selfLink"
+            get_certificate "$domainname" "$selfLink"
         done
 }
 
