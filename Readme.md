@@ -20,7 +20,7 @@ For now, there are the following limitations.
 The following env variables can be used.
 
  * `LETSENCRYPT_ROUTE_SELECTOR` (*optional*, defaults to `butter.sh/letsencrypt-managed=yes`), to filter the routes to use;
- * `LETSENCRYPT_RENEW_BEFORE_DAYS` (*optional*, defaults to `14`), renew this number of days before the certificate is about to expire;
+ * `LETSENCRYPT_RENEW_BEFORE_DAYS` (*optional*, defaults to `30`), renew this number of days before the certificate is about to expire;
  * `LETSENCRYPT_CONTACT_EMAIL` (*required for account generation*), the email that will be used by the ACME CA;
  * `LETSENCRYPT_CA` (*optional*, defaults to `https://acme-v01.api.letsencrypt.org/directory`);
  * `LETSENCRYPT_KEYTYPE` (*optional*, defaults to `rsa`), the key algorithm to use;
@@ -32,12 +32,7 @@ The following env variables can be used.
 
 ### Secrets
 
-Certificates are stored in secrets named `letsencrypt-<hostname>`, the ACME key is stored in `letsencrypt-creds`.
-
-They use the following labels.
-
- * `butter.sh/letsencrypt-domainname`, the domain name
- * `butter.sh/letsencrypt-crt-enddate-secs`, the certificates `notAfter` date in seconds since the epoch.
+The ACME key is stored in `letsencrypt-creds`.
 
 
 ### Containers
