@@ -54,4 +54,8 @@ unchanged_cert() {
     echo "Certificate for $DOMAIN unchanged."
 }
 
+exit_hook() {
+  echo "Running exit_hook"
+}
+
 HANDLER="$1"; shift; $HANDLER "$@"
