@@ -1,6 +1,6 @@
 FROM openshift/base-centos7
 
-ENV LETSENCRYPT_SH_REF=v0.3.1 \
+ENV LETSENCRYPT_SH_REF=v0.4.0 \
     LETSENCRYPT_DATADIR=/var/lib/letsencrypt-container \
     LETSENCRYPT_LIBEXECDIR=/usr/libexec/letsencrypt-container \
     LETSENCRYPT_SHAREDIR=/usr/share/letsencrypt-container
