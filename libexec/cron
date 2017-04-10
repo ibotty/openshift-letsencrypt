@@ -9,6 +9,8 @@ WHEN="tomorrow 02:05"
 do_cron() {
     local domainname selfLink
     local tmpl='.items[] | .spec.host + ":" + .metadata.selfLink'
+
+    log "watching routes with selector $LETSENCRYPT_ROUTE_SELECTOR"
     get_routes | jq -er "$tmpl" \
         | while IFS=: read -r domainname selfLink; do
             log "Processing route $selfLink with domain $domainname."
@@ -18,5 +20,6 @@ do_cron() {
 
 while true; do
     do_cron
+    log "sleeping until $WHEN"
     sleep $(( $(date -d "$WHEN" +%s) - $(date +%s) ))
 done
