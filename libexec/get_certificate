@@ -6,10 +6,11 @@ set -euo pipefail
 
 DOMAINNAME="$1"
 SELFLINK="$2"
-DOMAINDIR="$LETSENCRYPT_DATADIR/$DOMAINNAME"
 keyfile_="$(keyfile "$DOMAINNAME")"
 certfile_="$(certfile "$DOMAINNAME")"
 fullchainfile_="$(fullchainfile "$DOMAINNAME")"
+
+pidfile=$LETSENCRYPT_DATADIR/get_certificate.pid
 
 get_old_certificate() {
     if ! [ -f "$certfile_" ] || ! [ -f "$keyfile_" ] || ! [ -f "$fullchainfile_" ]
@@ -37,6 +38,10 @@ get_new_certificate() {
         --config "$LETSENCRYPT_SHAREDIR/config" \
         --cron
 }
+
+# Try to get lock
+exec 201>"$pidfile"
+flock -x 201
 
 get_old_certificate
 if crt_valid_long_enough "$certfile_"; then
