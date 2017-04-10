@@ -1,4 +1,4 @@
-FROM openshift/base-centos7
+FROM centos/s2i-base-centos7
 
 ENV LETSENCRYPT_SH_REF=v0.4.0 \
     LETSENCRYPT_DATADIR=/var/lib/letsencrypt-container \
