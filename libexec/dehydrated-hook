@@ -58,4 +58,8 @@ exit_hook() {
   echo "Running exit_hook"
 }
 
+request_failure() {
+  echo "Running request_failure_hook"
+}
+
 HANDLER="$1"; shift; $HANDLER "$@"
