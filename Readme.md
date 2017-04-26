@@ -71,10 +71,9 @@ Instanciate the template.
 ### Service Account
 
 The "letsencrypt" service account needs to be able to manage its secrets and manage routes.
-For now, the admin role can be used, but that should be tightened considerably.
 
 ```
-> oc policy add-role-to-user edit system:serviceaccount:letsencrypt:default
+> oc policy add-role-to-user edit system:serviceaccount:`oc project -q`:letsencrypt
 ```
 
 ### Let's encrypt credentials
