@@ -39,6 +39,33 @@ get_new_certificate() {
         --cron
 }
 
+cleanup_wellknown() {
+    delete_well_known_route "$DOMAINNAME"
+}
+
+setup_well_known_route() {
+    local route_name; route_name="$(well_known_route_name "$DOMAINNAME")"
+
+    if route_exists "$route_name"; then
+        log "Deleting well-known route."
+        delete_well_known_route "$DOMAIN"
+    fi
+
+    log "Adding well-known route."
+    add_well_known_route "$DOMAIN"
+
+    # sleep for max 50s waiting for admitted route
+    for ((i=50; i > 0; i--)); do
+        sleep 2s
+        if route_is_valid "$route_name"; then
+            return 0
+        fi
+    done
+
+    log "Route $route_name not admitted."
+    return 1
+}
+
 # Try to get lock
 exec 201>"$pidfile"
 flock -x 201
@@ -48,6 +75,8 @@ if crt_valid_long_enough "$certfile_"; then
     log "Certificate for $DOMAINNAME still valid long enough."
 else
     log "Getting new certificate for $DOMAINNAME"
+    setup_well_known_route
+    trap cleanup_well_known_route EXIT
     get_new_certificate "$DOMAINNAME"
     add_certificate_to_route "$DOMAINNAME" "$SELFLINK"
 fi
