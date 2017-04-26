@@ -20,9 +20,8 @@ get_old_certificate() {
     fi
 }
 
-setup_api_key() {
-    get_secret "$LETSENCRYPT_ACME_SECRET_NAME" \
-         | mount_secret "$LETSENCRYPT_DATADIR"
+check_api_key() {
+   test -f "$LETSENCRYPT_ACCOUNTSECRETDIR/account-key"
 }
 
 get_new_certificate() {

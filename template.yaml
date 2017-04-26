@@ -34,6 +34,8 @@ objects:
           imagePullPolicy: Always
           name: watcher
           volumeMounts:
+          - mountPath: /etc/openshift-letsencrypt
+            name: account-creds
           - mountPath: /var/lib/letsencrypt-container
             name: datadir
           - mountPath: /var/www/acme-challenge
@@ -47,6 +49,8 @@ objects:
           name: cron
           terminationMessagePath: /dev/termination-log
           volumeMounts:
+          - mountPath: /etc/openshift-letsencrypt
+            name: account-creds
           - mountPath: /var/lib/letsencrypt-container
             name: datadir
           - mountPath: /var/www/acme-challenge
@@ -67,6 +71,9 @@ objects:
         volumes:
         - emptyDir: {}
           name: acme-challenge
+        - secret:
+            secretName: letsencrypt-creds
+          name: account-creds
         - emptyDir: {}
           name: datadir
     triggers:
