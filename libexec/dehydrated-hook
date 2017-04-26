@@ -44,22 +44,35 @@ deploy_cert() {
     cp "$CERTFILE" "$(certfile "$DOMAIN")"
     cp "$FULLCHAINFILE" "$(fullchainfile "$DOMAIN")"
 
-    echo "Defer deploying certificate for routes."
+    log "Defer deploying certificate for routes."
 }
 
 unchanged_cert() {
     local DOMAIN="${1}" KEYFILE="${2}" CERTFILE="${3}"
     local FULLCHAINFILE="${4}" CHAINFILE="${5}"
 
-    echo "Certificate for $DOMAIN unchanged."
+    log "Certificate for $DOMAIN unchanged."
 }
 
 exit_hook() {
-  echo "Running exit_hook"
+    log "Running exit_hook"
 }
 
 request_failure() {
-  echo "Running request_failure_hook"
+    local STATUSCODE="${1}" REASON="${2}" REQTYPE="${3}"
+    log "request_failure  statuscode=$STATUSCODE reason=$REASON reqtype=$REQTYPE"
 }
 
-HANDLER="$1"; shift; $HANDLER "$@"
+invalid_challenge() {
+    local DOMAIN="${1}" RESPONSE="${2}"
+    log "invalid_challenge: domain=${DOMAIN}:"
+    log "$RESPONSE"
+}
+
+HANDLER="$1"; shift
+# check if $HANDLER is a defined function
+if compgen -A function | grep -q "^${HANDLER}\$"; then
+    $HANDLER "$@"
+else
+    log "Hander not defined: $HANDLER"
+fi
