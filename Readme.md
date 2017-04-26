@@ -58,7 +58,7 @@ They share the filesystem `/var/www/acme-challenge` to store the challenges.
 
 Create the template as usual.
 ```
-> oc create -f letsencrypt-template.yaml
+> oc create -f template.yaml
 ```
 
 ### Deploy openshift-letsencrypt
@@ -74,7 +74,7 @@ The "letsencrypt" service account needs to be able to manage its secrets and man
 For now, the admin role can be used, but that should be tightened considerably.
 
 ```
-> oc policy add-role-to-user letsencrypt -z admin
+> oc policy add-role-to-user edit system:serviceaccount:letsencrypt:default
 ```
 
 ### Let's encrypt credentials
