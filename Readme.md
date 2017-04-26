@@ -58,7 +58,7 @@ They share the filesystem `/var/www/acme-challenge` to store the challenges.
 
 Create the template as usual.
 ```
-> oc create -f letsencrypt-template.yaml
+> oc create -f template.yaml
 ```
 
 ### Deploy openshift-letsencrypt
