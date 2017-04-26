@@ -93,8 +93,11 @@ route_exists() {
 }
 
 route_is_valid() {
-    local isAdmitted='.status.ingress[0].conditions[0].type == "Admitted"'
-    api_call "$(route_uri "$@")"  | jq -e "$isAdmitted" > /dev/null
+    local domain="$1"
+    local magic="openshift-letsencrypt"
+
+    echo "$magic" > /var/www/acme-challenge/.owner
+    test "$(curl -fs "$1/.well-known/acme-challenge/.owner")" = "$magic"
 }
 
 patch_route() {
