@@ -72,12 +72,26 @@ watch_routes() {
     api_call "$routes_uri" -N
 }
 
+# intersperse arguments with first argument
+# > intersperse , a b c
+# a,b,c
+intersperse() {
+    local IFS="$1"
+    shift
+    echo "$*"
+}
+
 get_routes() {
     local routes_uri
+    local label_selector
     routes_uri="$(route_uri)"
-    if [ -n "$LETSENCRYPT_ROUTE_SELECTOR" ]; then
-        routes_uri="$routes_uri?labelSelector=$LETSENCRYPT_ROUTE_SELECTOR"
+    label_selector="$(intersperse , "$LETSENCRYPT_ROUTE_SELECTOR" "$@")"
+    label_selector="${label_selector#,}"
+
+    if [ -n "$label_selector" ]; then
+        routes_uri="$routes_uri?labelSelector=$label_selector"
     fi
+
     api_call "$routes_uri"
 }
 		
