@@ -5,6 +5,7 @@ export LETSENCRYPT_SERVICE_NAME=${LETSENCRYPT_SERVICE_NAME-letsencrypt}
 export LETSENCRYPT_ACME_SECRET_NAME="${LETSENCRYPT_ACME_SECRET_NAME-letsencrypt-creds}"
 export LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY="${LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY-Redirect}"
 export LETSENCRYPT_ROUTE_SELECTOR="${LETSENCRYPT_ROUTE_SELECTOR-butter.sh/letsencrypt-managed=yes}"
+export LETSENCRYPT_DOMAIN_SELECTOR="${LETSENCRYPT_ROUTE_SELECTOR-butter.sh/letsencrypt-domainname}"
 export LETSENCRYPT_KEYTYPE="${LETSENCRYPT_KEYTYPE-rsa}"
 export LETSENCRYPT_RENEW_BEFORE_DAYS=${LETSENCRYPT_RENEW_BEFORE_DAYS-30}
 export LETSENCRYPT_VERBOSE="${LETSENCRYPT_VERBOSE-yes}"
@@ -18,6 +19,10 @@ OPENSHIFT_API_HOST=openshift.default
 SA_TOKEN="$(</run/secrets/kubernetes.io/serviceaccount/token)"
 OWN_NAMESPACE="$(</run/secrets/kubernetes.io/serviceaccount/namespace)"
 CA_CRT_FILE=/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+domain_selector() {
+    echo "${LETSENCRYPT_DOMAIN_SELECTOR}=$1"
+}
 
 keyfile() {
     echo "$LETSENCRYPT_DATADIR/$1/key"
@@ -94,8 +99,7 @@ get_routes() {
 
     api_call "$routes_uri"
 }
-		
-		
+
 route_uri() {
     local name="${1-}"
     local namespace="${2-$OWN_NAMESPACE}"
@@ -178,7 +182,7 @@ valid_secrets_selector() {
         min_valid_secs="$(min_valid_enddate_secs)"
     fi
 
-    echo "butter.sh/letsencrypt-crt-enddate-secs>$min_valid_secs,butter.sh/letsencrypt-domainname=$DOMAINNAME"
+    echo "butter.sh/letsencrypt-crt-enddate-secs>$min_valid_secs,$(domain_selector "$DOMAINNAME")"
 }
 
 hpkp_sha256() {
@@ -236,6 +240,9 @@ add_certificate_to_route() {
             "annotations": {
               "butter.sh/letsencrypt-crt-enddate-secs": "$enddate_secs",
               "butter.sh/letsencrypt-key-sha256": "$key_sha256"
+            },
+            "labels": {
+              "$LETSENCRYPT_DOMAIN_SELECTOR": "$DOMAINNAME"
             }
           },
           "spec": { "tls": {
