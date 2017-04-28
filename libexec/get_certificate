@@ -53,8 +53,8 @@ setup_well_known_route() {
     log "Adding well-known route."
     add_well_known_route "$DOMAIN"
 
-    # sleep for max 50s waiting for admitted route
-    for ((i=50; i > 0; i--)); do
+    # sleep for max 60s waiting for admitted route
+    for ((i=30; i > 0; i--)); do
         sleep 2s
         if route_is_valid "$route_name"; then
             return 0
