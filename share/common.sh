@@ -5,7 +5,7 @@ export LETSENCRYPT_SERVICE_NAME=${LETSENCRYPT_SERVICE_NAME-letsencrypt}
 export LETSENCRYPT_ACME_SECRET_NAME="${LETSENCRYPT_ACME_SECRET_NAME-letsencrypt-creds}"
 export LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY="${LETSENCRYPT_DEFAULT_INSECURE_EDGE_TERMINATION_POLICY-Redirect}"
 export LETSENCRYPT_ROUTE_SELECTOR="${LETSENCRYPT_ROUTE_SELECTOR-butter.sh/letsencrypt-managed=yes}"
-export LETSENCRYPT_DOMAIN_SELECTOR="${LETSENCRYPT_ROUTE_SELECTOR-butter.sh/letsencrypt-domainname}"
+export LETSENCRYPT_DOMAIN_SELECTOR="${LETSENCRYPT_DOMAIN_SELECTOR-butter.sh/letsencrypt-domainname}"
 export LETSENCRYPT_KEYTYPE="${LETSENCRYPT_KEYTYPE-rsa}"
 export LETSENCRYPT_RENEW_BEFORE_DAYS=${LETSENCRYPT_RENEW_BEFORE_DAYS-30}
 export LETSENCRYPT_VERBOSE="${LETSENCRYPT_VERBOSE-yes}"
@@ -115,7 +115,7 @@ route_is_valid() {
     local magic="openshift-letsencrypt"
 
     echo "$magic" > /var/www/acme-challenge/.owner
-    test "$(curl -fs "$domain/.well-known/acme-challenge/.owner")" = "$magic"
+    test "$(curl -Lfs "$domain/.well-known/acme-challenge/.owner")" = "$magic"
 }
 
 patch_route() {

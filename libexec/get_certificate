@@ -25,20 +25,20 @@ check_api_key() {
 }
 
 get_new_certificate() {
-    setup_api_key
+    check_api_key
     log "calling dehydrated with domain name '$DOMAINNAME'"
     dehydrated \
         --domain "$DOMAINNAME" \
         --challenge http-01 \
         --algo "$LETSENCRYPT_KEYTYPE" \
         --out "$LETSENCRYPT_DATADIR" \
-        --privkey "$LETSENCRYPT_DATADIR/account-key" \
+        --privkey "$LETSENCRYPT_ACCOUNTSECRETDIR/account-key" \
         --hook "$LETSENCRYPT_LIBEXECDIR/dehydrated-hook" \
         --config "$LETSENCRYPT_SHAREDIR/config" \
         --cron
 }
 
-cleanup_wellknown() {
+cleanup_well_known_route() {
     delete_well_known_route "$DOMAINNAME"
 }
 
@@ -47,16 +47,16 @@ setup_well_known_route() {
 
     if route_exists "$route_name"; then
         log "Deleting well-known route."
-        delete_well_known_route "$DOMAIN"
+        delete_well_known_route "$DOMAINNAME"
     fi
 
     log "Adding well-known route."
-    add_well_known_route "$DOMAIN"
+    add_well_known_route "$DOMAINNAME"
 
     # sleep for max 60s waiting for admitted route
     for ((i=30; i > 0; i--)); do
         sleep 2s
-        if route_is_valid "$route_name"; then
+        if route_is_valid "$DOMAINNAME"; then
             return 0
         fi
     done
