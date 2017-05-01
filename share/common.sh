@@ -216,7 +216,7 @@ add_well_known_route() {
 delete_well_known_route() {
     local DOMAINNAME="$1"
     local TEMP_ROUTE_NAME; TEMP_ROUTE_NAME="$(well_known_route_name "$DOMAINNAME")"
-    api_call "$(route_uri "$TEMP_ROUTE_NAME")" -X DELETE
+    api_call "$(route_uri "$TEMP_ROUTE_NAME")" -X DELETE > /dev/null
 }
 
 add_certificate_to_route() {
