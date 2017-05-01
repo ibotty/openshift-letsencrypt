@@ -21,7 +21,10 @@ get_old_certificate() {
 }
 
 check_api_key() {
-   test -f "$LETSENCRYPT_ACCOUNTSECRETDIR/account-key"
+   if ! [ -f "$LETSENCRYPT_ACCOUNTSECRETDIR/account-key" ]; then
+      log "No account key found. Be sure to mount secret \`letsencrypt-creds\` in $LETSENCRYPT_ACCOUNTSECRETDIR"
+      return 1
+   fi
 }
 
 get_new_certificate() {
