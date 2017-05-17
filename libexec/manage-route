@@ -12,15 +12,15 @@ LETSENCRYPT_VERBOSE=n
 declare -a ROUTES=()
 
 usage() {
-    echo "Usage: $SCRIPTNAME [OPTION]... [ROUTE_NAME]..."
-    echo "Set whether routes TLS settings are to be managed by Let's Encrypt."
-    echo
-    echo "Optional Arguments:"
-    echo "  -l --letsencrypt=[yes|no]   let Let's Encrypt manage certificate (default)"
-    echo "  -n --namespace=NAMESPACE    openshift namespace/project the route is in"
-    echo "  -v --verbose                be verbose"
-    echo "     --dry-run                only print what would be done (implies verbose)"
-    echo "  -h --help                   show this help"
+    log "Usage: $SCRIPTNAME [OPTION]... [ROUTE_NAME]..."
+    log "Set whether routes TLS settings are to be managed by Let's Encrypt."
+    log
+    log "Optional Arguments:"
+    log "  -l --letsencrypt=[yes|no]   let Let's Encrypt manage certificate (default)"
+    log "  -n --namespace=NAMESPACE    openshift namespace/project the route is in"
+    log "  -v --verbose                be verbose"
+    log "     --dry-run                only print what would be done (implies verbose)"
+    log "  -h --help                   show this help"
 }
 
 # shellcheck disable=SC2016

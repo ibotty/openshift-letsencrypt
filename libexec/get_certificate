@@ -23,7 +23,7 @@ get_old_certificate() {
     if ! [ -f "$certfile_" ] || ! [ -f "$keyfile_" ] || ! [ -f "$fullchainfile_" ]
     then
         get_certs_from_route "$DOMAINNAME" "$SELFLINK"\
-	    || echo "no old certificate found"
+	    || log "no old certificate found"
     fi
 }
 
