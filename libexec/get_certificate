@@ -12,6 +12,13 @@ fullchainfile_="$(fullchainfile "$DOMAINNAME")"
 
 pidfile=$LETSENCRYPT_DATADIR/get_certificate.pid
 
+verify_domainname() {
+   if [ ${#DOMAINNAME} -gt 63 ]; then
+      log "domains with more than 63 characters are not supported"
+      return 1
+   fi
+}
+
 get_old_certificate() {
     if ! [ -f "$certfile_" ] || ! [ -f "$keyfile_" ] || ! [ -f "$fullchainfile_" ]
     then
@@ -72,6 +79,7 @@ setup_well_known_route() {
 exec 201>"$pidfile"
 flock -x 201
 
+verify_domainname
 get_old_certificate
 if crt_valid_long_enough "$certfile_"; then
     log "Certificate for $DOMAINNAME still valid long enough."
