@@ -7,6 +7,7 @@ Certificates will be stored in secrets starting with `letsencrypt-`.
 ## Limitations
 For now, there are the following limitations.
 
+ * It only supports domain names of length smaller than 64 characters.
  * It only implements `http-01`-type verification, better known as "Well-Known".
  * Multiple domains per certificate are not supported. See issue #1.
  * It will not create the letsencrypt account.
