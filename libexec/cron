@@ -11,7 +11,7 @@ do_cron() {
     local tmpl='.items[] | .spec.host + ":" + .metadata.selfLink'
 
     log "watching routes with selector $LETSENCRYPT_ROUTE_SELECTOR"
-    get_routes | jq -er "$tmpl" \
+    get_routes | jq -r "$tmpl" \
         | while IFS=: read -r domainname selfLink; do
             log "Processing route $selfLink with domain $domainname."
             get_certificate "$domainname" "$selfLink"
