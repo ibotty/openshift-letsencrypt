@@ -30,7 +30,7 @@ objects:
           env:
           - name: LETSENCRYPT_CONTACT_EMAIL
             value: ${LETSENCRYPT_CONTACT_EMAIL}
-          image: crossb0w/openshift-letsencrypt:latest
+          image: ibotty/openshift-letsencrypt:latest
           imagePullPolicy: Always
           name: watcher
           volumeMounts:
@@ -45,7 +45,7 @@ objects:
           env:
           - name: LETSENCRYPT_CONTACT_EMAIL
             value: ${LETSENCRYPT_CONTACT_EMAIL}
-          image: crossb0w/openshift-letsencrypt:latest
+          image: ibotty/openshift-letsencrypt:latest
           name: cron
           terminationMessagePath: /dev/termination-log
           volumeMounts:
