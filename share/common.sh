@@ -54,6 +54,7 @@ is_true() {
             ;;
     esac
 }
+
 api_call() {
     local uri="${1##/}"; shift
     curl --fail -sSH "Authorization: Bearer $SA_TOKEN" \
@@ -71,9 +72,11 @@ api_call() {
 watch_routes() {
     local routes_uri
     routes_uri="$(route_uri)?watch"
+
     if [ -n "$LETSENCRYPT_ROUTE_SELECTOR" ]; then
         routes_uri="$routes_uri&labelSelector=$LETSENCRYPT_ROUTE_SELECTOR"
     fi
+
     api_call "$routes_uri" -N
 }
 

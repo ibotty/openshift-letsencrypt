@@ -7,12 +7,18 @@ set -euo pipefail
 process_routes() {
     local domainname selfLink
     local tmpl='.object.spec.host + ":" + .object.metadata.selfLink'
+    
     log "watching routes with selector $LETSENCRYPT_ROUTE_SELECTOR"
+    
     watch_routes | jq -er --unbuffered "$tmpl" \
         | while IFS=: read -r domainname selfLink; do
-            log "Processing route $selfLink with domain $domainname."
-            get_certificate "$domainname" "$selfLink"
-        done
+            if [ -n domainname ] && [ -n selfLink ]; then
+              log "Processing route $selfLink with domain $domainname."
+              get_certificate "$domainname" "$selfLink"
+            else
+              log "$(watch_routes)"
+            fi
+            done
 }
 
 while true
