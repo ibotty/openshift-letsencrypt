@@ -9,7 +9,6 @@ process_routes() {
     local tmpl='.object.spec.host + ":" + .object.metadata.selfLink'
     
     log "watching routes with selector $LETSENCRYPT_ROUTE_SELECTOR"
-    log "$(watch_routes)"
     
     watch_routes | jq -er --unbuffered "$tmpl" \
         | while IFS=: read -r domainname selfLink; do
@@ -17,7 +16,7 @@ process_routes() {
               log "Processing route $selfLink with domain $domainname."
               get_certificate "$domainname" "$selfLink"
             else
-              log watch_routes
+              log "$(watch_routes)"
             fi
             done
 }
