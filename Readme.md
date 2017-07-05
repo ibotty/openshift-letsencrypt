@@ -28,6 +28,14 @@ The following env variables can be used.
  * `LETSENCRYPT_KEYSIZE` (*optional*, defaults to `4096`), the size in bit for the private keys (if applicable);
 
 
+## Troubleshooting
+
+### Route does not get admitted
+
+Please test, whether DNS is set up correctly. In particular the hostname to get
+a certificate for has to point to the router (or the loadbalancer), also from
+within the cluster!
+
 
 ## Implementation Details
 
