@@ -1,7 +1,6 @@
 # Automatic Certificates for Openshift Routes
 
 It will manage all `route`s with (by default) `butter.sh/letsencrypt-managed=yes` labels in the project/namespace, it's deployed in.
-Certificates will be stored in secrets starting with `letsencrypt-`.
 
 
 ## Limitations
