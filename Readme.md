@@ -82,6 +82,12 @@ The "letsencrypt" service account needs to be able to manage its secrets and man
 
 ```
 > oc adm policy add-role-to-user edit -z letsencrypt
+```
+
+Add the `letsencrypt` clusterrole:
+
+```
+> oc create -f letsencrypt-clusterrole.yaml
 > oc adm policy add-cluster-role-to-user letsencrypt system:serviceaccount:<PROJECT>:letsencrypt
 ```
 
