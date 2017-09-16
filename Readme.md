@@ -81,7 +81,8 @@ Instanciate the template.
 The "letsencrypt" service account needs to be able to manage its secrets and manage routes.
 
 ```
-> oc policy add-role-to-user edit -z letsencrypt
+> oc adm policy add-role-to-user edit -z letsencrypt
+> oc adm policy add-cluster-role-to-user letsencrypt system:serviceaccount:<PROJECT>:letsencrypt
 ```
 
 ### Let's encrypt credentials
