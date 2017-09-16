@@ -88,7 +88,7 @@ Add the `letsencrypt` clusterrole:
 
 ```
 > oc create -f letsencrypt-clusterrole.yaml
-> oc adm policy add-cluster-role-to-user letsencrypt system:serviceaccount:<PROJECT>:letsencrypt
+> oc adm policy add-cluster-role-to-user letsencrypt system:serviceaccount:`oc project -q`:letsencrypt
 ```
 
 ### Let's encrypt credentials
