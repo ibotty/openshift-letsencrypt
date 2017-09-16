@@ -88,5 +88,5 @@ else
     setup_well_known_route
     trap cleanup_well_known_route EXIT
     get_new_certificate "$DOMAINNAME"
-    add_certificate_to_route "$DOMAINNAME" "$SELFLINK"
 fi
+add_certificate_to_route "$DOMAINNAME" "$SELFLINK"
