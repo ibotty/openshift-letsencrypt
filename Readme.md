@@ -6,13 +6,13 @@ It will manage all `route`s with (by default) `butter.sh/letsencrypt-managed=yes
 ## Limitations
 For now, there are the following limitations.
 
- * It only supports domain names of length smaller than 64 characters.
- * It only implements `http-01`-type verification, better known as "Well-Known".
- * Multiple domains per certificate are not supported. See issue #1.
- * It will not create the letsencrypt account.
+ 1. It only supports domain names of length smaller than 64 characters.
+ 2. It only implements `http-01`-type verification, better known as "Well-Known".
+ 3. Multiple domains per certificate are not supported. See issue #1.
+ 4. It will not create the letsencrypt account.
    It needs to be created before deploying.
    See Section **Installation** below.
- * It doesn't work cross-namespace. See issue #4.
+ 5. It doesn't work cross-namespace. See issue #4.
 
 
 ## Customizing
