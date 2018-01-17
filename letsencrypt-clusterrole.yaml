@@ -2,17 +2,23 @@ apiVersion: v1
 kind: ClusterRole
 metadata:
   name: letsencrypt
+  labels:
+    app: letsencrypt
 rules:
 - apiGroups:
   - ""
-  attributeRestrictions: null
+  - "route.openshift.io"
   resources:
   - routes
+  - routes/custom-host
+  - routes/status
   verbs:
-  - create
-  - delete
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
   - get
   - list
-  - patch
-  - update
   - watch
