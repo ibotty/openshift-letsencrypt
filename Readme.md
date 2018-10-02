@@ -1,4 +1,8 @@
-# Automatic Certificates for Openshift Routes
+# PROJECT NO LONGER ACTIVELY MAINTAINED, use https://github.com/tnozicka/openshift-acme instead ([comparison here](https://github.com/tnozicka/openshift-acme/issues/21))
+
+
+
+## Automatic Certificates for Openshift Routes
 
 It will manage all `route`s with (by default) `butter.sh/letsencrypt-managed=yes` labels in the project/namespace, it's deployed in.
 
@@ -124,7 +128,3 @@ Maybe pre-generate `n` keys and pin all of them.
 On key rollover, delete the previous key, use the oldest of the remaining keys to sign the certificate, generate a new key and pin the new keys.
 That way, the pin can stay valid for `(n-1)* lifetime of a key`.
 That is, if no key gets compromised!
-
-### Alternatives
-
-https://github.com/tnozicka/openshift-acme is a very similar project ([comparison here](https://github.com/tnozicka/openshift-acme/issues/21)).
